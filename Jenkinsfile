@@ -12,14 +12,21 @@ pipeline {
         stage('Setup Python') {
             steps {
                 sh '''
+                    echo "🐍 Checking Python version..."
                     python3 --version
 
+                    echo "📦 Creating virtual environment..."
                     python3 -m venv venv
 
                     . venv/bin/activate
 
+                    echo "⬆️ Upgrading pip..."
                     pip install --upgrade pip
+
+                    echo "📥 Installing project dependencies..."
                     pip install -r requirements.txt
+
+                    echo "✅ Python environment setup completed."
                 '''
             }
         }
@@ -27,9 +34,13 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh '''
+                    echo "🧪 Running Python tests..."
+
                     . venv/bin/activate
 
                     PYTHONPATH=. pytest -v
+
+                    echo "✅ All tests passed."
                 '''
             }
         }
@@ -37,11 +48,13 @@ pipeline {
         stage('Validate Pipeline') {
             steps {
                 sh '''
+                    echo "🔍 Validating Python source files..."
+
                     . venv/bin/activate
 
                     python -m py_compile src/*.py
 
-                    echo "✅ Python pipeline validation successful"
+                    echo "✅ Python pipeline validation successful."
                 '''
             }
         }
@@ -51,13 +64,15 @@ pipeline {
                 sshagent(['news-ec2-ssh']) {
                     sh '''
                         echo "🚀 Triggering Prefect deployment..."
-                        echo "⏳ Jenkins will wait for the Prefect flow to complete."
+                        echo "⏳ Jenkins will wait until the Prefect flow reaches a terminal state."
 
                         ssh -o StrictHostKeyChecking=no \
                             ubuntu@172.31.35.19 \
                             "cd ~/news-headline-aggregator && \
                              source venv/bin/activate && \
-                             prefect deployment run 'news-headline-aggregator/daily-news-aggregator' --watch"
+                             prefect deployment run \
+                             'news-headline-aggregator/daily-news-aggregator' \
+                             --watch"
 
                         echo "✅ Prefect flow completed successfully."
                     '''
@@ -69,16 +84,24 @@ pipeline {
     post {
 
         success {
-            echo '🎉 NEWS HEADLINE AGGREGATOR PIPELINE COMPLETED SUCCESSFULLY!'
-            echo '✅ Jenkins tests passed.'
+            echo '=================================================='
+            echo '🎉 NEWS HEADLINE AGGREGATOR PIPELINE SUCCESSFUL!'
+            echo '=================================================='
+            echo '✅ Jenkins checkout completed.'
+            echo '✅ Python environment setup completed.'
+            echo '✅ Tests passed.'
             echo '✅ Python validation passed.'
             echo '✅ Prefect flow completed successfully.'
             echo '✅ News data pipeline executed successfully.'
+            echo '=================================================='
         }
 
         failure {
-            echo '❌ NEWS HEADLINE AGGREGATOR PIPELINE FAILED.'
-            echo '⚠️ Check the Jenkins console output for the failed stage.'
+            echo '=================================================='
+            echo '❌ NEWS HEADLINE AGGREGATOR PIPELINE FAILED!'
+            echo '=================================================='
+            echo '⚠️ Check the failed stage in the Jenkins console.'
+            echo '=================================================='
         }
 
         always {
