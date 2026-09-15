@@ -13,7 +13,9 @@ pipeline {
             steps {
                 sh '''
                     python3 --version
+
                     python3 -m venv venv
+
                     . venv/bin/activate
 
                     pip install --upgrade pip
@@ -49,12 +51,15 @@ pipeline {
                 sshagent(['news-ec2-ssh']) {
                     sh '''
                         echo "🚀 Triggering Prefect deployment..."
+                        echo "⏳ Jenkins will wait for the Prefect flow to complete."
 
                         ssh -o StrictHostKeyChecking=no \
                             ubuntu@172.31.35.19 \
                             "cd ~/news-headline-aggregator && \
                              source venv/bin/activate && \
-                             prefect deployment run 'news-headline-aggregator/daily-news-aggregator'"
+                             prefect deployment run 'news-headline-aggregator/daily-news-aggregator' --watch"
+
+                        echo "✅ Prefect flow completed successfully."
                     '''
                 }
             }
@@ -64,12 +69,16 @@ pipeline {
     post {
 
         success {
-            echo '🎉 CI pipeline completed successfully!'
-            echo '🚀 Prefect news aggregation pipeline triggered successfully!'
+            echo '🎉 NEWS HEADLINE AGGREGATOR PIPELINE COMPLETED SUCCESSFULLY!'
+            echo '✅ Jenkins tests passed.'
+            echo '✅ Python validation passed.'
+            echo '✅ Prefect flow completed successfully.'
+            echo '✅ News data pipeline executed successfully.'
         }
 
         failure {
-            echo '❌ Pipeline failed. Check the Jenkins console output.'
+            echo '❌ NEWS HEADLINE AGGREGATOR PIPELINE FAILED.'
+            echo '⚠️ Check the Jenkins console output for the failed stage.'
         }
 
         always {
