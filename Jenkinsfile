@@ -15,6 +15,7 @@ pipeline {
                     python3 --version
                     python3 -m venv venv
                     . venv/bin/activate
+
                     pip install --upgrade pip
                     pip install -r requirements.txt
                 '''
@@ -25,6 +26,7 @@ pipeline {
             steps {
                 sh '''
                     . venv/bin/activate
+
                     PYTHONPATH=. pytest -v
                 '''
             }
@@ -34,7 +36,9 @@ pipeline {
             steps {
                 sh '''
                     . venv/bin/activate
+
                     python -m py_compile src/*.py
+
                     echo "✅ Python pipeline validation successful"
                 '''
             }
@@ -42,25 +46,34 @@ pipeline {
 
         stage('Trigger Prefect Pipeline') {
             steps {
-                sh '''
-                    ssh -o StrictHostKeyChecking=no \
-                        -i ~/.ssh/id_ed25519 \
-                        ubuntu@172.31.35.19 \
-                        "cd ~/news-headline-aggregator && \
-                         source venv/bin/activate && \
-                         prefect deployment run 'news-headline-aggregator/daily-news-aggregator'"
-                '''
+                sshagent(['news-ec2-ssh']) {
+                    sh '''
+                        echo "🚀 Triggering Prefect deployment..."
+
+                        ssh -o StrictHostKeyChecking=no \
+                            ubuntu@172.31.35.19 \
+                            "cd ~/news-headline-aggregator && \
+                             source venv/bin/activate && \
+                             prefect deployment run 'news-headline-aggregator/daily-news-aggregator'"
+                    '''
+                }
             }
         }
     }
 
     post {
+
         success {
-            echo '🎉 CI + Prefect pipeline triggered successfully!'
+            echo '🎉 CI pipeline completed successfully!'
+            echo '🚀 Prefect news aggregation pipeline triggered successfully!'
         }
 
         failure {
             echo '❌ Pipeline failed. Check the Jenkins console output.'
+        }
+
+        always {
+            echo '🏁 Jenkins pipeline execution completed.'
         }
     }
 }
