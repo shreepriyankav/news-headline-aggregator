@@ -1,0 +1,29 @@
+name: news-headline-aggregator
+prefect-version: 3.8.5
+
+build: null
+
+push: null
+
+pull:
+  - prefect.deployments.steps.set_working_directory:
+      directory: /home/ubuntu/news-headline-aggregator
+
+deployments:
+  - name: daily-news-aggregator
+    version: "1.0"
+    tags:
+      - news
+      - daily
+      - mysql
+    description: "Daily news headline extraction, transformation, and MySQL loading pipeline"
+    schedule:
+      cron: "0 9 * * *"
+      timezone: "Asia/Kolkata"
+    flow_name: news-headline-aggregator
+    entrypoint: src/flow.py:news_pipeline
+    parameters: {}
+    work_pool:
+      name: news-headline-pool
+      work_queue_name: null
+      job_variables: {}
