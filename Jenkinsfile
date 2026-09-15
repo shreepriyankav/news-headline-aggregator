@@ -40,15 +40,27 @@ pipeline {
             }
         }
 
+        stage('Trigger Prefect Pipeline') {
+            steps {
+                sh '''
+                    ssh -o StrictHostKeyChecking=no \
+                        -i ~/.ssh/id_ed25519 \
+                        ubuntu@172.31.35.19 \
+                        "cd ~/news-headline-aggregator && \
+                         source venv/bin/activate && \
+                         prefect deployment run 'news-headline-aggregator/daily-news-aggregator'"
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo '🎉 News Headline Aggregator CI pipeline completed successfully!'
+            echo '🎉 CI + Prefect pipeline triggered successfully!'
         }
 
         failure {
-            echo '❌ CI pipeline failed. Check the Jenkins console output.'
+            echo '❌ Pipeline failed. Check the Jenkins console output.'
         }
     }
 }
