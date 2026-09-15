@@ -257,33 +257,6 @@ The Prefect deployment is configured with:
 - Timezone: Asia/Kolkata
 - Cron: `0 9 * * *`
   
-### How to Run the Project
-
-1️⃣ Connect to News Aggregator EC2
-cd ~/news-headline-aggregator
-2️⃣ Activate Python virtual environment
-source venv/bin/activate
-3️⃣ Run the Python pipeline manually
-python src/pipeline.py
-4️⃣ Run tests
-PYTHONPATH=. pytest -v
-5️⃣ Run Python validation
-python -m py_compile src/*.py
-6️⃣ Run the Prefect flow manually
-python src/flow.py
-7️⃣ Run through Prefect Deployment
-prefect deployment run 'news-headline-aggregator/daily-news-aggregator'
-8️⃣ Check Prefect Worker
-sudo systemctl status prefect-worker
-9️⃣ Check Prefect Server
-sudo systemctl status prefect-server
-10️⃣ Check scheduled deployment
-prefect deployment inspect 'news-headline-aggregator/daily-news-aggregator'
-11️⃣ Run through Jenkins
-prefect deployment run \
-'news-headline-aggregator/daily-news-aggregator' \
---watch
-
 ### Output
 
 <img width="1600" height="900" alt="1" src="https://github.com/user-attachments/assets/9a89e734-0295-42eb-81f5-bed7444f8271" />
